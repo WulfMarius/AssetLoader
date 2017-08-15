@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-
+﻿
 using UnityEngine;
 
-namespace ModAsset
+namespace LoadAsset
 {
     public class LoadAsset
     {
         public static void OnLoad()
         {
+            ModAssetBundleManager.RegisterAssetBundle("binoculars");
+
             uConsole.RegisterCommand("prybar", new uConsole.DebugCommand(SpawnPrybar));
-            uConsole.RegisterCommand("chair", new uConsole.DebugCommand(SpawnChair));
             uConsole.RegisterCommand("binoculars", new uConsole.DebugCommand(SpawnBinoculars));
         }
 
@@ -29,18 +26,7 @@ namespace ModAsset
 
         private static void SpawnBinoculars()
         {
-            UnityEngine.Object prefab = Resources.Load(ModAssetBundleManager.MOD_PREFIX + "binoculars/assets/prefabs/MOD_GEAR_binoculars.prefab");
-            Debug.Log("Prefab: " + prefab);
-
-            Transform playerTransform = GameManager.GetPlayerTransform();
-            Vector3 targetPosition = playerTransform.position + playerTransform.forward * 2;
-
-            instantiatePrefab((GameObject)prefab, targetPosition);
-        }
-
-        private static void SpawnChair()
-        {
-            UnityEngine.Object prefab = Resources.Load(ModAssetBundleManager.MOD_PREFIX + "leather_chair/assets/prefabs/leather_chair.prefab");
+            UnityEngine.Object prefab = Resources.Load("GEAR_Binoculars");
             Debug.Log("Prefab: " + prefab);
 
             Transform playerTransform = GameManager.GetPlayerTransform();
