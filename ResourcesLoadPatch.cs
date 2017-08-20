@@ -4,7 +4,7 @@ using Harmony;
 
 using UnityEngine;
 
-namespace LoadAsset
+namespace AssetLoader
 {
     // Hinterland load assets by calling Resources.Load which ignores external AssetBundles
     // so we need to patch Resources.Load to redirect specific calls to load from the AssetBundle instead
@@ -18,7 +18,6 @@ namespace LoadAsset
                 return true;
             }
 
-            //Debug.Log("Redirecting Resources.Load(" + path + ") to ModAssetBundleManager.LoadAsset(" + path + ")");
             __result = ModAssetBundleManager.LoadAsset(path);
             return false;
         }

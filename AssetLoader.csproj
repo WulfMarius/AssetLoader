@@ -7,8 +7,8 @@
     <ProjectGuid>{2A440D88-06E0-4F36-908E-83BA45942BE5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LoadAsset</RootNamespace>
-    <AssemblyName>LoadAsset</AssemblyName>
+    <RootNamespace>AssetLoader</RootNamespace>
+    <AssemblyName>AssetLoader</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -31,8 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AssetBundleManager.cs" />
-    <Compile Include="LoadAsset.cs" />
+    <Compile Include="AssetUtils.cs" />
+    <Compile Include="ModAssetBundleManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourcesLoadPatch.cs" />
     <Compile Include="UtilsPatch.cs" />
@@ -43,7 +43,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\Steam\SteamApps\common\TheLongDark\tld_Data\Managed\Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
