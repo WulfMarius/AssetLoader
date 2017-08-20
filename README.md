@@ -1,16 +1,11 @@
-LoadAsset
+AssetLoader
 
 
 This is a mod for **The Long Dark** by Hinterland Games Studio, Inc.
 
 
-It allows loading assets from external asset bundles.
+It allows loading Unity assets from external asset bundles when using UnityEngine.Resources.Load.
+This mod is only infrastructure for other mods and does not provide any assets or asset bundles and does not add or modify any items or game mechanics by itself.
 
 
-- Currently only adds two console commands "chair" and "binoculars" for spawning test assets.
-- resources/binoculars and resources/leather_chair need to be copied to the "mods" folder
-- CreateAssetBundle.cs is a script for the Unity Editor to create own asset bundles; it need to be copied into the "Assets/Editor" folder of the Unity project
-
-
-
-Requires the [Mod Loader](https://github.com/zeobviouslyfakeacc/ModLoaderInstaller) to run.
+Requires the [Mod Loader](https://github.com/zeobviouslyfakeacc/ModLoaderInstaller) to be used.
