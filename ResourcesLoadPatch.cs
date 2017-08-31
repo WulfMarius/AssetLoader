@@ -1,7 +1,5 @@
-﻿using System;
-
-using Harmony;
-
+﻿using Harmony;
+using System;
 using UnityEngine;
 
 namespace AssetLoader
