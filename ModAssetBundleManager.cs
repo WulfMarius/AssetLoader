@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Reflection;
-
 using UnityEngine;
 
 namespace AssetLoader
@@ -30,25 +30,38 @@ namespace AssetLoader
         {
             if (knownAssetBundles.ContainsKey(relativePath))
             {
-                Debug.LogWarning("Asset bundle '" + relativePath + "' has already been registered.");
+                Log("Asset bundle '{0}' has already been registered.", relativePath);
                 return;
             }
 
             string modDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string assetBundlePath = Path.Combine(modDirectory, relativePath);
+            string fullPath = Path.Combine(modDirectory, relativePath);
 
-            Debug.Log("Loading mod asset bundle '" + relativePath + "' from path '" + assetBundlePath + "'.");
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("Asset bundle '" + relativePath + "' could not be found at '" + fullPath + "'.");
+            }
 
-            AssetBundle assetBundle = AssetBundle.LoadFromFile(assetBundlePath);
+            LoadAssetBundle(relativePath, fullPath);
+        }
+
+        private static void LoadAssetBundle(string relativePath, string fullPath)
+        {
+            Log("Loading mod asset bundle from '{0}'.", fullPath);
+
+            AssetBundle assetBundle = AssetBundle.LoadFromFile(fullPath);
             if (!assetBundle)
             {
-                Debug.LogError("Could not load asset bundle from '" + assetBundlePath + "'. Make sure the file exists and was created with the correct version of Unity.");
-                return;
+                throw new System.Exception("Could not load asset bundle from '" + fullPath + "'. Make the file was created with the correct version of Unity (should be 5.6.x).");
             }
 
             knownAssetBundles.Add(relativePath, assetBundle);
 
-            string message = "Registered asset bundle '" + relativePath + "' with the following assets\n";
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("Registered asset bundle '");
+            stringBuilder.Append(relativePath);
+            stringBuilder.Append("' with the following assets\n");
+
             foreach (string eachAssetName in assetBundle.GetAllAssetNames())
             {
                 string assetName = GetAssetName(eachAssetName);
@@ -64,10 +77,14 @@ namespace AssetLoader
                 knownAssetShortPaths.Add(shortName, eachAssetName);
                 knownAssetNames.Add(eachAssetName, assetBundle);
 
-                message += "  " + shortName + " => " + eachAssetName + "\n";
+                stringBuilder.Append("  ");
+                stringBuilder.Append(shortName);
+                stringBuilder.Append(" => ");
+                stringBuilder.Append(eachAssetName);
+                stringBuilder.Append("\n");
             }
 
-            Debug.Log(message);
+            Log(stringBuilder.ToString().Trim());
         }
 
         public static Object LoadAsset(string name)
@@ -80,8 +97,7 @@ namespace AssetLoader
                 return assetBundle.LoadAsset(fullAssetName);
             }
 
-            Debug.LogError("Unknown asset " + name + ". Did you forget to register an asset bundle?");
-            return null;
+            throw new System.Exception("Unknown asset " + name + ". Did you forget to register an asset bundle?");
         }
 
         private static string GetAssetName(string assetPath)
@@ -143,11 +159,11 @@ namespace AssetLoader
             TextAsset textAsset = asset as TextAsset;
             if (textAsset == null)
             {
-                Debug.LogError("Asset called '" + asset.name + "' is not a TextAsset as expected.");
+                Log("Asset called '{0}' is not a TextAsset as expected.", asset.name);
                 return;
             }
 
-            Debug.Log("Processing asset '" + asset.name + "' as localization.");
+            Log("Processing asset '{0}' as localization.", asset.name);
 
             ByteReader byteReader = new ByteReader(textAsset);
             string[] languages = Trim(byteReader.ReadCSV().ToArray());
@@ -188,6 +204,16 @@ namespace AssetLoader
             }
 
             return result;
+        }
+
+        private static void Log(string message)
+        {
+            AssetUtils.Log("ModAssetBundleManager", message);
+        }
+
+        private static void Log(string message, params object[] parameters)
+        {
+            AssetUtils.Log("ModAssetBundleManager", message, parameters);
         }
     }
 }
