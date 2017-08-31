@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2A440D88-06E0-4F36-908E-83BA45942BE5}</ProjectGuid>
+    <ProjectGuid>{9E635A88-DC90-42DA-9FF2-49316CC5D219}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AssetLoader</RootNamespace>
@@ -32,23 +32,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssetUtils.cs" />
+    <Compile Include="GameAudioManagerPatch.cs" />
     <Compile Include="ModAssetBundleManager.cs" />
+    <Compile Include="ModSoundBankManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourcesLoadPatch.cs" />
     <Compile Include="UtilsPatch.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Harmony, Version=1.0.9.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>E:\Steam\SteamApps\common\TheLongDark\tld_Data\Managed\Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="Assembly-CSharp" />
+    <Reference Include="Harmony" />
+    <Reference Include="UnityEngine" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>cmd /C copy "$(TargetPath)" E:\Steam\SteamApps\common\TheLongDark\mods</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
