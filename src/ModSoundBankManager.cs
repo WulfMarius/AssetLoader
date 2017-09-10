@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace AssetLoader
 {
     public class ModSoundBankManager
     {
-        private static List<string> pendingRelativePaths = new List<string>();
-
         internal static bool DelayLoadingSoundBanks = true;
+
+        private static List<string> pendingPaths = new List<string>();
+        private const int MEMORY_ALIGNMENT = 16;
 
         public static void RegisterSoundBank(string relativePath)
         {
@@ -25,7 +25,7 @@ namespace AssetLoader
             if (DelayLoadingSoundBanks)
             {
                 Log("Adding sound bank '{0}' to the list of pending sound banks.", relativePath);
-                pendingRelativePaths.Add(relativePath);
+                pendingPaths.Add(soundBankPath);
                 return;
             }
 
@@ -36,36 +36,35 @@ namespace AssetLoader
         {
             Log("Registering pending sound banks.");
 
-            foreach (string eachPendingRelativePath in pendingRelativePaths)
+            foreach (string eachPendingPath in pendingPaths)
             {
-                RegisterSoundBank(eachPendingRelativePath);
+                LoadSoundBank(eachPendingPath);
             }
 
-            pendingRelativePaths.Clear();
+            pendingPaths.Clear();
         }
 
         private static void LoadSoundBank(string soundBankPath)
         {
             Log("Loading mod sound bank from '{0}'.", soundBankPath);
-            byte[] soundBankData = File.ReadAllBytes(soundBankPath);
+            byte[] data = File.ReadAllBytes(soundBankPath);
+
+            // allocated memory and copy file contents to aligned address
+            IntPtr allocated = Marshal.AllocHGlobal(data.Length + MEMORY_ALIGNMENT - 1);
+            IntPtr aligned = new IntPtr((allocated.ToInt64() + MEMORY_ALIGNMENT - 1) / MEMORY_ALIGNMENT * MEMORY_ALIGNMENT);
+            Marshal.Copy(data, 0, aligned, data.Length);
 
             uint bankID;
-            IntPtr soundBankDataPointer = ToIntPtr(soundBankData);
-            AKRESULT result = AkSoundEngine.LoadBank(soundBankDataPointer, (uint)soundBankData.Length, out bankID);
-
-            if (result != AKRESULT.AK_Success)
+            var result = AkSoundEngine.LoadBank(aligned, (uint)data.Length, out bankID);
+            if (result == AKRESULT.AK_Success)
+            {
+                Log("Loaded sound bank from '{0}'.", soundBankPath);
+            }
+            else
             {
                 Log("Failed to load sound bank from '{0}'. Result was {1}.", soundBankPath, result);
+                Marshal.FreeHGlobal(allocated);
             }
-        }
-
-        private static IntPtr ToIntPtr(byte[] data)
-        {
-            IntPtr result = Marshal.AllocHGlobal(data.Length);
-
-            Marshal.Copy(data, 0, result, data.Length);
-
-            return result;
         }
 
         private static void Log(string message)
