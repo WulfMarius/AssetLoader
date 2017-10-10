@@ -30,7 +30,7 @@ namespace AssetLoader
         {
             if (knownAssetBundles.ContainsKey(relativePath))
             {
-                Log("Asset bundle '{0}' has already been registered.", relativePath);
+                Log("AssetBundle '{0}' has already been registered.", relativePath);
                 return;
             }
 
@@ -39,7 +39,7 @@ namespace AssetLoader
 
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException("Asset bundle '" + relativePath + "' could not be found at '" + fullPath + "'.");
+                throw new FileNotFoundException("AssetBundle '" + relativePath + "' could not be found at '" + fullPath + "'.");
             }
 
             LoadAssetBundle(relativePath, fullPath);
@@ -47,18 +47,18 @@ namespace AssetLoader
 
         private static void LoadAssetBundle(string relativePath, string fullPath)
         {
-            Log("Loading mod asset bundle from '{0}'.", fullPath);
+            Log("Loading AssetBundle from '{0}'.", fullPath);
 
             AssetBundle assetBundle = AssetBundle.LoadFromFile(fullPath);
             if (!assetBundle)
             {
-                throw new System.Exception("Could not load asset bundle from '" + fullPath + "'. Make the file was created with the correct version of Unity (should be 5.6.x).");
+                throw new System.Exception("Could not load AssetBundle from '" + fullPath + "'. Make sure the file was created with the correct version of Unity (should be 5.6.x).");
             }
 
             knownAssetBundles.Add(relativePath, assetBundle);
 
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append("Registered asset bundle '");
+            stringBuilder.Append("Registered AssetBundle '");
             stringBuilder.Append(relativePath);
             stringBuilder.Append("' with the following assets\n");
 
@@ -87,6 +87,13 @@ namespace AssetLoader
             Log(stringBuilder.ToString().Trim());
         }
 
+        public static AssetBundle GetAssetBundle(string relativePath)
+        {
+            AssetBundle result;
+            knownAssetBundles.TryGetValue(relativePath, out result);
+            return result;
+        }
+
         public static Object LoadAsset(string name)
         {
             string fullAssetName = getFullAssetName(name);
@@ -97,7 +104,7 @@ namespace AssetLoader
                 return assetBundle.LoadAsset(fullAssetName);
             }
 
-            throw new System.Exception("Unknown asset " + name + ". Did you forget to register an asset bundle?");
+            throw new System.Exception("Unknown asset " + name + ". Did you forget to register an AssetBundle?");
         }
 
         private static string GetAssetName(string assetPath)
@@ -190,7 +197,15 @@ namespace AssetLoader
                     translations[i] = values[index].Trim();
                 }
 
-                Localization.dictionary.Add(values[0], translations);
+                var key = values[0];
+                if (Localization.dictionary.ContainsKey(key))
+                {
+                    Localization.dictionary[key] = translations;
+                }
+                else
+                {
+                    Localization.dictionary.Add(key, translations);
+                }
             }
         }
 
