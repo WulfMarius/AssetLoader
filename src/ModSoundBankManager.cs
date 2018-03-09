@@ -8,10 +8,10 @@ namespace AssetLoader
 {
     public class ModSoundBankManager
     {
-        internal static bool DelayLoadingSoundBanks = true;
-
-        private static List<string> pendingPaths = new List<string>();
         private const int MEMORY_ALIGNMENT = 16;
+
+        internal static bool DelayLoadingSoundBanks = true;
+        private static List<string> pendingPaths = new List<string>();
 
         public static void RegisterSoundBank(string relativePath)
         {
@@ -24,7 +24,7 @@ namespace AssetLoader
 
             if (DelayLoadingSoundBanks)
             {
-                Log("Adding sound bank '{0}' to the list of pending sound banks.", relativePath);
+                AssetUtils.Log("Adding sound bank '{0}' to the list of pending sound banks.", relativePath);
                 pendingPaths.Add(soundBankPath);
                 return;
             }
@@ -34,7 +34,8 @@ namespace AssetLoader
 
         internal static void RegisterPendingSoundBanks()
         {
-            Log("Registering pending sound banks.");
+            AssetUtils.Log("Registering pending sound banks.");
+            DelayLoadingSoundBanks = false;
 
             foreach (string eachPendingPath in pendingPaths)
             {
@@ -46,35 +47,21 @@ namespace AssetLoader
 
         private static void LoadSoundBank(string soundBankPath)
         {
-            Log("Loading mod sound bank from '{0}'.", soundBankPath);
+            AssetUtils.Log("Loading mod sound bank from '{0}'.", soundBankPath);
             byte[] data = File.ReadAllBytes(soundBankPath);
 
-            // allocated memory and copy file contents to aligned address
+            // allocate memory and copy file contents to aligned address
             IntPtr allocated = Marshal.AllocHGlobal(data.Length + MEMORY_ALIGNMENT - 1);
             IntPtr aligned = new IntPtr((allocated.ToInt64() + MEMORY_ALIGNMENT - 1) / MEMORY_ALIGNMENT * MEMORY_ALIGNMENT);
             Marshal.Copy(data, 0, aligned, data.Length);
 
             uint bankID;
             var result = AkSoundEngine.LoadBank(aligned, (uint)data.Length, out bankID);
-            if (result == AKRESULT.AK_Success)
+            if (result != AKRESULT.AK_Success)
             {
-                Log("Loaded sound bank from '{0}'.", soundBankPath);
-            }
-            else
-            {
-                Log("Failed to load sound bank from '{0}'. Result was {1}.", soundBankPath, result);
+                AssetUtils.Log("Failed to load sound bank from '{0}'. Result was {1}.", soundBankPath, result);
                 Marshal.FreeHGlobal(allocated);
             }
-        }
-
-        private static void Log(string message)
-        {
-            AssetUtils.Log("ModSoundBankManager", message);
-        }
-
-        private static void Log(string message, params object[] parameters)
-        {
-            AssetUtils.Log("ModSoundBankManager", message, parameters);
         }
     }
 }
