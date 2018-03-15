@@ -1,5 +1,8 @@
 ﻿using Harmony;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 
 namespace AssetLoader
@@ -30,14 +33,51 @@ namespace AssetLoader
         }
     }
 
+    internal class SaveAtlas : MonoBehaviour
+    {
+        public UIAtlas original;
+    }
+
+    [HarmonyPatch(typeof(UISprite), "set_spriteName")]
+    internal class UISprite_set_spriteName
+    {
+        public static void Postfix(UISprite __instance, string value)
+        {
+            UIAtlas atlas = AssetUtils.GetRequiredAtlas(__instance, value);
+            if (__instance.atlas == atlas)
+            {
+                return;
+            }
+
+            AssetUtils.SaveOriginalAtlas(__instance);
+            __instance.atlas = atlas;
+        }
+    }
+
     [HarmonyPatch(typeof(Utils), "GetInventoryIconTextureFromName")]
     internal class UtilsGetInventoryIconTextureFromNamePatch
     {
-        public static bool Prefix(string spriteName, ref Texture2D __result)
+        internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            __result = Resources.Load("InventoryGridIcons/" + spriteName) as Texture2D;
+            return AssetUtils.PatchResourceLoading(instructions);
+        }
+    }
 
-            return false;
+    [HarmonyPatch(typeof(ClothingSlot), "SetPaperDollTexture")]
+    internal class ClothingSlot_SetPaperDollTexture
+    {
+        internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return AssetUtils.PatchResourceLoading(instructions);
+        }
+    }
+
+    [HarmonyPatch(typeof(Panel_Log), "UpdateSkillsPage")]
+    public class Panel_Log_UpdateSkillsPage
+    {
+        internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return AssetUtils.PatchResourceLoading(instructions);
         }
     }
 }

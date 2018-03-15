@@ -14,6 +14,7 @@ namespace AssetLoader
         private static Dictionary<string, AssetBundle> knownAssetBundles = new Dictionary<string, AssetBundle>();
         private static Dictionary<string, AssetBundle> knownAssetNames = new Dictionary<string, AssetBundle>();
         private static Dictionary<string, string> knownAssetShortPaths = new Dictionary<string, string>();
+        private static Dictionary<string, UIAtlas> knownSpriteAtlases = new Dictionary<string, UIAtlas>();
 
         public static AssetBundle GetAssetBundle(string relativePath)
         {
@@ -43,6 +44,13 @@ namespace AssetLoader
             }
 
             throw new System.Exception("Unknown asset " + name + ". Did you forget to register an AssetBundle?");
+        }
+
+        internal static UIAtlas GetSpriteAtlas(string spriteName)
+        {
+            UIAtlas result = null;
+            knownSpriteAtlases.TryGetValue(spriteName, out result);
+            return result;
         }
 
         public static void LoadLocalization(Object asset)
@@ -89,6 +97,39 @@ namespace AssetLoader
                 else
                 {
                     Localization.dictionary.Add(key, translations);
+                }
+            }
+        }
+
+        public static void LoadUiAtlas(Object asset)
+        {
+            GameObject gameObject = asset as GameObject;
+            if (gameObject == null)
+            {
+                AssetUtils.Log("Asset called '{0}' is not a GameObject as expected.", asset.name);
+                return;
+            }
+
+            UIAtlas uiAtlas = gameObject.GetComponent<UIAtlas>();
+            if (uiAtlas == null)
+            {
+                AssetUtils.Log("Asset called '{0}' does not contain a UIAtlast as expected.", asset.name);
+                return;
+            }
+
+            AssetUtils.Log("Processing asset '{0}' as UIAtlas.", asset.name);
+
+            BetterList<string> sprites = uiAtlas.GetListOfSprites();
+            foreach (var eachSprite in sprites)
+            {
+                if (knownSpriteAtlases.ContainsKey(eachSprite))
+                {
+                    Debug.LogWarning("Replacing definition of sprite '" + eachSprite + "' from atlas '" + knownSpriteAtlases[eachSprite].name + "' to '" + uiAtlas.name + "'.");
+                    knownSpriteAtlases[eachSprite] = uiAtlas;
+                }
+                else
+                {
+                    knownSpriteAtlases.Add(eachSprite, uiAtlas);
                 }
             }
         }
@@ -190,6 +231,13 @@ namespace AssetLoader
                 {
                     Object asset = assetBundle.LoadAsset(eachAssetName);
                     LoadLocalization(asset);
+                    continue;
+                }
+
+                if (assetName.EndsWith("atlas", System.StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Object asset = assetBundle.LoadAsset(eachAssetName);
+                    LoadUiAtlas(asset);
                     continue;
                 }
 
