@@ -9,11 +9,14 @@ namespace AssetLoader
     public class ModAssetBundleManager
     {
         private const string ASSET_NAME_LOCALIZATION = "localization";
-        private const string PATH_PREFIX_ASSETS = "assets/";
+        private const string ASSET_NAME_PREFIX_GEAR = "gear_";
+        private const string ASSET_NAME_SUFFIX = "atlas";
+        private const string ASSET_PATH_PREFIX_ASSETS = "assets/";
+        private const string ASSET_PATH_SUFFIX_PREFAB = ".prefab";
 
         private static Dictionary<string, AssetBundle> knownAssetBundles = new Dictionary<string, AssetBundle>();
+        private static Dictionary<string, string> knownAssetMappedNames = new Dictionary<string, string>();
         private static Dictionary<string, AssetBundle> knownAssetNames = new Dictionary<string, AssetBundle>();
-        private static Dictionary<string, string> knownAssetShortPaths = new Dictionary<string, string>();
         private static Dictionary<string, UIAtlas> knownSpriteAtlases = new Dictionary<string, UIAtlas>();
 
         public static AssetBundle GetAssetBundle(string relativePath)
@@ -44,13 +47,6 @@ namespace AssetLoader
             }
 
             throw new System.Exception("Unknown asset " + name + ". Did you forget to register an AssetBundle?");
-        }
-
-        internal static UIAtlas GetSpriteAtlas(string spriteName)
-        {
-            UIAtlas result = null;
-            knownSpriteAtlases.TryGetValue(spriteName, out result);
-            return result;
         }
 
         public static void LoadLocalization(Object asset)
@@ -153,6 +149,35 @@ namespace AssetLoader
             LoadAssetBundle(relativePath, fullPath);
         }
 
+        internal static UIAtlas GetSpriteAtlas(string spriteName)
+        {
+            UIAtlas result = null;
+            knownSpriteAtlases.TryGetValue(spriteName, out result);
+            return result;
+        }
+
+        private static string getAssetMappedName(string assetPath, string assetName)
+        {
+            if (assetName.StartsWith(ASSET_NAME_PREFIX_GEAR) && assetPath.EndsWith(ASSET_PATH_SUFFIX_PREFAB))
+            {
+                return assetName;
+            }
+
+            string result = assetPath;
+            if (result.StartsWith(ASSET_PATH_PREFIX_ASSETS))
+            {
+                result = result.Substring(ASSET_PATH_PREFIX_ASSETS.Length);
+            }
+
+            int index = result.LastIndexOf(assetName);
+            if (index != -1)
+            {
+                result = result.Substring(0, index + assetName.Length);
+            }
+
+            return result;
+        }
+
         private static string GetAssetName(string assetPath)
         {
             string result = assetPath;
@@ -172,35 +197,17 @@ namespace AssetLoader
             return result;
         }
 
-        private static string getAssetShortName(string assetPath, string assetName)
-        {
-            string result = assetPath.ToLower();
-
-            if (result.StartsWith(PATH_PREFIX_ASSETS))
-            {
-                result = result.Substring(PATH_PREFIX_ASSETS.Length);
-            }
-
-            int index = result.LastIndexOf(assetName.ToLower());
-            if (index != -1)
-            {
-                result = result.Substring(0, index + assetName.Length);
-            }
-
-            return result;
-        }
-
         private static string getFullAssetName(string name)
         {
-            string lowerCaseName = name.ToLower();
+            string lowerCaseName = name.ToLowerInvariant();
             if (knownAssetNames.ContainsKey(lowerCaseName))
             {
                 return lowerCaseName;
             }
 
-            if (knownAssetShortPaths.ContainsKey(lowerCaseName))
+            if (knownAssetMappedNames.ContainsKey(lowerCaseName))
             {
-                return knownAssetShortPaths[lowerCaseName];
+                return knownAssetMappedNames[lowerCaseName];
             }
 
             return null;
@@ -234,19 +241,20 @@ namespace AssetLoader
                     continue;
                 }
 
-                if (assetName.EndsWith("atlas", System.StringComparison.InvariantCultureIgnoreCase))
+                if (assetName.EndsWith(ASSET_NAME_SUFFIX))
                 {
                     Object asset = assetBundle.LoadAsset(eachAssetName);
                     LoadUiAtlas(asset);
                     continue;
                 }
 
-                string shortName = getAssetShortName(eachAssetName, assetName);
-                knownAssetShortPaths.Add(shortName, eachAssetName);
                 knownAssetNames.Add(eachAssetName, assetBundle);
 
+                string mappedName = getAssetMappedName(eachAssetName, assetName);
+                knownAssetMappedNames.Add(mappedName, eachAssetName);
+
                 stringBuilder.Append("  ");
-                stringBuilder.Append(shortName);
+                stringBuilder.Append(mappedName);
                 stringBuilder.Append(" => ");
                 stringBuilder.Append(eachAssetName);
                 stringBuilder.Append("\n");
