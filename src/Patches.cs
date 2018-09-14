@@ -2,11 +2,42 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
 
 namespace AssetLoader
 {
+    [HarmonyPatch()]
+    internal class DefaultAssetBundleRef_LoadAsset_Texture2D
+    {
+        public static bool Prefix(string name, ref Texture2D __result)
+        {
+            if (!ModAssetBundleManager.IsKnownAsset(name))
+            {
+                return true;
+            }
+
+            __result = ModAssetBundleManager.LoadAsset(name) as Texture2D;
+            return __result == null;
+        }
+
+        public static MethodBase TargetMethod()
+        {
+            MethodInfo[] methods = typeof(DefaultAssetBundleRef).GetMethods();
+            foreach (MethodInfo eachMethod in methods)
+            {
+                if (eachMethod.Name == "LoadAsset" && eachMethod.GetGenericArguments().Length == 1)
+                {
+                    return eachMethod.MakeGenericMethod(typeof(Texture2D));
+                }
+            }
+
+            Debug.LogWarning("Could not find target method for patch DefaultAssetBundleRef_LoadAsset_Texture2D.");
+
+            // fallback is our own method, so harmony won't fail during load
+            return typeof(DefaultAssetBundleRef_LoadAsset_Texture2D).GetMethod("Prefix");
+        }
+    }
+
     [HarmonyPatch(typeof(GameAudioManager), "LoadSoundBanks")]
     internal class GameAudioManager_LoadSoundBanksPath
     {
@@ -19,7 +50,7 @@ namespace AssetLoader
     // Hinterland load assets by calling Resources.Load which ignores external AssetBundles
     // so we need to patch Resources.Load to redirect specific calls to load from the AssetBundle instead
     [HarmonyPatch(typeof(Resources), "Load", new Type[] { typeof(string) })]
-    internal class ResourcesLoadPatch
+    internal class Resources_Load
     {
         public static bool Prefix(string path, ref UnityEngine.Object __result)
         {
@@ -56,24 +87,6 @@ namespace AssetLoader
 
     [HarmonyPatch(typeof(Utils), "GetInventoryIconTextureFromName")]
     internal class UtilsGetInventoryIconTextureFromNamePatch
-    {
-        internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return AssetUtils.PatchResourceLoading(instructions);
-        }
-    }
-
-    [HarmonyPatch(typeof(ClothingSlot), "SetPaperDollTexture")]
-    internal class ClothingSlot_SetPaperDollTexture
-    {
-        internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return AssetUtils.PatchResourceLoading(instructions);
-        }
-    }
-
-    [HarmonyPatch(typeof(Panel_Log), "UpdateSkillsPage")]
-    public class Panel_Log_UpdateSkillsPage
     {
         internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {

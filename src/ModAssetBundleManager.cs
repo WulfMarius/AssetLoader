@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
@@ -11,8 +12,9 @@ namespace AssetLoader
         private const string ASSET_NAME_LOCALIZATION = "localization";
         private const string ASSET_NAME_PREFIX_GEAR = "gear_";
         private const string ASSET_NAME_SUFFIX = "atlas";
-        private const string ASSET_PATH_PREFIX_ASSETS = "assets/";
         private const string ASSET_PATH_SUFFIX_PREFAB = ".prefab";
+
+        private static readonly string[] RESOURCE_FOLDER = { "assets/", "logimages/", "clothingpaperdoll/female/", "clothingpaperdoll/male/" };
 
         private static Dictionary<string, AssetBundle> knownAssetBundles = new Dictionary<string, AssetBundle>();
         private static Dictionary<string, string> knownAssetMappedNames = new Dictionary<string, string>();
@@ -164,10 +166,8 @@ namespace AssetLoader
             }
 
             string result = assetPath;
-            if (result.StartsWith(ASSET_PATH_PREFIX_ASSETS))
-            {
-                result = result.Substring(ASSET_PATH_PREFIX_ASSETS.Length);
-            }
+
+            result = StripResourceFolder(result);
 
             int index = result.LastIndexOf(assetName);
             if (index != -1)
@@ -248,6 +248,12 @@ namespace AssetLoader
                     continue;
                 }
 
+                if (knownAssetNames.ContainsKey(eachAssetName))
+                {
+                    Debug.LogWarning("Duplicate asset name '" + eachAssetName + "'.");
+                    continue;
+                }
+
                 knownAssetNames.Add(eachAssetName, assetBundle);
 
                 string mappedName = getAssetMappedName(eachAssetName, assetName);
@@ -261,6 +267,24 @@ namespace AssetLoader
             }
 
             AssetUtils.Log(stringBuilder.ToString().Trim());
+        }
+
+        private static string StripResourceFolder(string assetPath)
+        {
+            string result = assetPath;
+
+            while (true)
+            {
+                string resourceFolder = RESOURCE_FOLDER.Where(eachResourceFolder => result.StartsWith(eachResourceFolder)).FirstOrDefault();
+                if (resourceFolder == null)
+                {
+                    break;
+                }
+
+                result = result.Substring(resourceFolder.Length);
+            }
+
+            return result;
         }
 
         private static string[] Trim(string[] values)
