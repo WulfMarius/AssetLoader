@@ -23,6 +23,8 @@
 					"url": "https://github.com/WulfMarius/AssetLoader/releases/download/2.0.1/AssetLoader-V2.0.1.zip"
 				}
 			]
+		}, {
+			"version": "2.1.0"
 		}
 	]
 }
