@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
+using static AssetLoader.Implementation;
+
 namespace AssetLoader
 {
     public class ModAssetBundleManager
@@ -23,8 +25,7 @@ namespace AssetLoader
 
         public static AssetBundle GetAssetBundle(string relativePath)
         {
-            AssetBundle result;
-            knownAssetBundles.TryGetValue(relativePath, out result);
+            knownAssetBundles.TryGetValue(relativePath, out AssetBundle result);
             return result;
         }
 
@@ -42,8 +43,7 @@ namespace AssetLoader
         {
             string fullAssetName = getFullAssetName(name);
 
-            AssetBundle assetBundle;
-            if (knownAssetNames.TryGetValue(fullAssetName, out assetBundle))
+            if (knownAssetNames.TryGetValue(fullAssetName, out AssetBundle assetBundle))
             {
                 return assetBundle.LoadAsset(fullAssetName);
             }
@@ -56,11 +56,11 @@ namespace AssetLoader
             TextAsset textAsset = asset as TextAsset;
             if (textAsset == null)
             {
-                AssetUtils.Log("Asset called '{0}' is not a TextAsset as expected.", asset.name);
+                Log("Asset called '{0}' is not a TextAsset as expected.", asset.name);
                 return;
             }
 
-            AssetUtils.Log("Processing asset '{0}' as localization.", asset.name);
+            Log("Processing asset '{0}' as localization.", asset.name);
 
             ByteReader byteReader = new ByteReader(textAsset);
             string[] languages = Trim(byteReader.ReadCSV().ToArray());
@@ -104,25 +104,25 @@ namespace AssetLoader
             GameObject gameObject = asset as GameObject;
             if (gameObject == null)
             {
-                AssetUtils.Log("Asset called '{0}' is not a GameObject as expected.", asset.name);
+                Log("Asset called '{0}' is not a GameObject as expected.", asset.name);
                 return;
             }
 
             UIAtlas uiAtlas = gameObject.GetComponent<UIAtlas>();
             if (uiAtlas == null)
             {
-                AssetUtils.Log("Asset called '{0}' does not contain a UIAtlast as expected.", asset.name);
+                Log("Asset called '{0}' does not contain a UIAtlast as expected.", asset.name);
                 return;
             }
 
-            AssetUtils.Log("Processing asset '{0}' as UIAtlas.", asset.name);
+            Log("Processing asset '{0}' as UIAtlas.", asset.name);
 
             BetterList<string> sprites = uiAtlas.GetListOfSprites();
             foreach (var eachSprite in sprites)
             {
                 if (knownSpriteAtlases.ContainsKey(eachSprite))
                 {
-                    Debug.LogWarning("Replacing definition of sprite '" + eachSprite + "' from atlas '" + knownSpriteAtlases[eachSprite].name + "' to '" + uiAtlas.name + "'.");
+                    Log("Replacing definition of sprite '{0}' from atlas '{1}' to '{2}'.", eachSprite, knownSpriteAtlases[eachSprite].name, uiAtlas.name);
                     knownSpriteAtlases[eachSprite] = uiAtlas;
                 }
                 else
@@ -136,7 +136,7 @@ namespace AssetLoader
         {
             if (knownAssetBundles.ContainsKey(relativePath))
             {
-                AssetUtils.Log("AssetBundle '{0}' has already been registered.", relativePath);
+                Log("AssetBundle '{0}' has already been registered.", relativePath);
                 return;
             }
 
@@ -215,12 +215,12 @@ namespace AssetLoader
 
         private static void LoadAssetBundle(string relativePath, string fullPath)
         {
-            AssetUtils.Log("Loading AssetBundle from '{0}'.", fullPath);
+            Log("Loading AssetBundle from '{0}'.", fullPath);
 
             AssetBundle assetBundle = AssetBundle.LoadFromFile(fullPath);
             if (!assetBundle)
             {
-                throw new System.Exception("Could not load AssetBundle from '" + fullPath + "'. Make sure the file was created with the correct version of Unity (should be 5.6.x).");
+                throw new System.Exception("Could not load AssetBundle from '" + fullPath + "'. Make sure the file was created with the correct version of Unity (should be 2018.2.x).");
             }
 
             knownAssetBundles.Add(relativePath, assetBundle);
@@ -250,7 +250,7 @@ namespace AssetLoader
 
                 if (knownAssetNames.ContainsKey(eachAssetName))
                 {
-                    Debug.LogWarning("Duplicate asset name '" + eachAssetName + "'.");
+                    Log("Duplicate asset name '{0}'.", eachAssetName);
                     continue;
                 }
 
@@ -266,7 +266,7 @@ namespace AssetLoader
                 stringBuilder.Append("\n");
             }
 
-            AssetUtils.Log(stringBuilder.ToString().Trim());
+            Log(stringBuilder.ToString().Trim());
         }
 
         private static string StripResourceFolder(string assetPath)

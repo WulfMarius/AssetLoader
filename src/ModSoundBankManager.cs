@@ -4,13 +4,15 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using static AssetLoader.Implementation;
+
 namespace AssetLoader
 {
     public class ModSoundBankManager
     {
         private const int MEMORY_ALIGNMENT = 16;
 
-        internal static bool DelayLoadingSoundBanks = true;
+        private static bool DelayLoadingSoundBanks = true;
         private static List<string> pendingPaths = new List<string>();
 
         public static void RegisterSoundBank(string relativePath)
@@ -24,7 +26,7 @@ namespace AssetLoader
 
             if (DelayLoadingSoundBanks)
             {
-                AssetUtils.Log("Adding sound bank '{0}' to the list of pending sound banks.", relativePath);
+                Log("Adding sound bank '{0}' to the list of pending sound banks.", relativePath);
                 pendingPaths.Add(soundBankPath);
                 return;
             }
@@ -34,7 +36,7 @@ namespace AssetLoader
 
         internal static void RegisterPendingSoundBanks()
         {
-            AssetUtils.Log("Registering pending sound banks.");
+            Log("Registering pending sound banks.");
             DelayLoadingSoundBanks = false;
 
             foreach (string eachPendingPath in pendingPaths)
@@ -47,7 +49,7 @@ namespace AssetLoader
 
         private static void LoadSoundBank(string soundBankPath)
         {
-            AssetUtils.Log("Loading mod sound bank from '{0}'.", soundBankPath);
+            Log("Loading mod sound bank from '{0}'.", soundBankPath);
             byte[] data = File.ReadAllBytes(soundBankPath);
 
             // allocate memory and copy file contents to aligned address
@@ -59,7 +61,7 @@ namespace AssetLoader
             var result = AkSoundEngine.LoadBank(aligned, (uint)data.Length, out bankID);
             if (result != AKRESULT.AK_Success)
             {
-                AssetUtils.Log("Failed to load sound bank from '{0}'. Result was {1}.", soundBankPath, result);
+                Log("Failed to load sound bank from '{0}'. Result was {1}.", soundBankPath, result);
                 Marshal.FreeHGlobal(allocated);
             }
         }

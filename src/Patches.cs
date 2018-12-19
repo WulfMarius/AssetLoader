@@ -9,7 +9,7 @@ namespace AssetLoader
     [HarmonyPatch()]
     internal class DefaultAssetBundleRef_LoadAsset_Texture2D
     {
-        public static bool Prefix(string name, ref Texture2D __result)
+        internal static bool Prefix(string name, ref Texture2D __result)
         {
             if (!ModAssetBundleManager.IsKnownAsset(name))
             {
@@ -20,7 +20,7 @@ namespace AssetLoader
             return __result == null;
         }
 
-        public static MethodBase TargetMethod()
+        internal static MethodBase TargetMethod()
         {
             MethodInfo[] methods = typeof(DefaultAssetBundleRef).GetMethods();
             foreach (MethodInfo eachMethod in methods)
@@ -41,7 +41,7 @@ namespace AssetLoader
     [HarmonyPatch(typeof(GameAudioManager), "LoadSoundBanks")]
     internal class GameAudioManager_LoadSoundBanksPath
     {
-        public static void Postfix()
+        internal static void Postfix()
         {
             ModSoundBankManager.RegisterPendingSoundBanks();
         }
@@ -52,7 +52,7 @@ namespace AssetLoader
     [HarmonyPatch(typeof(Resources), "Load", new Type[] { typeof(string) })]
     internal class Resources_Load
     {
-        public static bool Prefix(string path, ref UnityEngine.Object __result)
+        internal static bool Prefix(string path, ref UnityEngine.Object __result)
         {
             if (!ModAssetBundleManager.IsKnownAsset(path))
             {
@@ -72,7 +72,7 @@ namespace AssetLoader
     [HarmonyPatch(typeof(UISprite), "set_spriteName")]
     internal class UISprite_set_spriteName
     {
-        public static void Postfix(UISprite __instance, string value)
+        internal static void Postfix(UISprite __instance, string value)
         {
             UIAtlas atlas = AssetUtils.GetRequiredAtlas(__instance, value);
             if (__instance.atlas == atlas)
@@ -82,15 +82,6 @@ namespace AssetLoader
 
             AssetUtils.SaveOriginalAtlas(__instance);
             __instance.atlas = atlas;
-        }
-    }
-
-    [HarmonyPatch(typeof(Utils), "GetInventoryIconTextureFromName")]
-    internal class UtilsGetInventoryIconTextureFromNamePatch
-    {
-        internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            return AssetUtils.PatchResourceLoading(instructions);
         }
     }
 }
