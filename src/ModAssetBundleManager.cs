@@ -16,7 +16,7 @@ namespace AssetLoader
         private const string ASSET_NAME_SUFFIX = "atlas";
         private const string ASSET_PATH_SUFFIX_PREFAB = ".prefab";
 
-        private static readonly string[] RESOURCE_FOLDER = { "assets/", "logimages/", "clothingpaperdoll/female/", "clothingpaperdoll/male/" };
+        private static readonly string[] RESOURCE_FOLDER = { "assets/", "logimages/", "clothingpaperdoll/female/", "clothingpaperdoll/male/", "inventorygridicons/" };
 
         private static Dictionary<string, AssetBundle> knownAssetBundles = new Dictionary<string, AssetBundle>();
         private static Dictionary<string, string> knownAssetMappedNames = new Dictionary<string, string>();

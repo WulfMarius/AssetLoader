@@ -5,25 +5,22 @@ namespace AssetLoader
 {
     public class Implementation
     {
-        private static string name;
+        private const string NAME = "AssetLoader";
 
         public static void OnLoad()
         {
             AssemblyName assemblyName = Assembly.GetExecutingAssembly().GetName();
-            name = assemblyName.Name;
-
             Log("Version " + assemblyName.Version);
         }
 
         internal static void Log(string message)
         {
-            string preformattedMessage = string.Format("[0] {1}", name, message);
-            Debug.LogFormat("[{0}] {1}", name, message);
+            Debug.LogFormat("[" + NAME + "] {0}", message);
         }
 
         internal static void Log(string message, params object[] parameters)
         {
-            string preformattedMessage = string.Format("[{0}] {1}", name, message);
+            string preformattedMessage = string.Format("[" + NAME + "] {0}", message);
             Debug.LogFormat(preformattedMessage, parameters);
         }
     }
